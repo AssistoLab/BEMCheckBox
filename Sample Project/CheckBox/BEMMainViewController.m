@@ -58,15 +58,21 @@
         case 0:
             self.checkBox.tintColor = [UIColor lightGrayColor];
             self.checkBox.onTintColor = [UIColor colorWithRed:0 green:122.0/255.0 blue:255/255 alpha:1];
+			self.checkBox.onTintIntermediateStateColor = [UIColor colorWithRed:0 green:122.0/255.0 blue:255/255 alpha:1];
             self.checkBox.onFillColor = [UIColor clearColor];
+			self.checkBox.onFillIntermediateStateColor = [UIColor clearColor];
             self.checkBox.onCheckColor = [UIColor colorWithRed:0 green:122.0/255.0 blue:255/255 alpha:1];
+			self.checkBox.onLineColor = [UIColor colorWithRed:0 green:122.0/255.0 blue:255/255 alpha:1];
             break;
             
         default:
             self.checkBox.tintColor = [UIColor lightGrayColor];
             self.checkBox.onTintColor = [UIColor colorWithRed:0 green:122.0/255.0 blue:255/255 alpha:1];
             self.checkBox.onFillColor = [UIColor colorWithRed:0 green:122.0/255.0 blue:255/255 alpha:1];
+			self.checkBox.onFillIntermediateStateColor = [UIColor lightGrayColor];
+			self.checkBox.onTintIntermediateStateColor = [UIColor lightGrayColor];
             self.checkBox.onCheckColor = [UIColor whiteColor];
+			self.checkBox.onLineColor = [UIColor whiteColor];
             break;
     }
 }

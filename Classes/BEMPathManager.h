@@ -49,4 +49,9 @@
  */
 - (UIBezierPath *)pathForFlatCheckMark;
 
+/** Returns a UIBezierPath object for the line of the checkBox
+ * @returns The path of the line.
+ */
+- (UIBezierPath *)pathForLine;
+
 @end

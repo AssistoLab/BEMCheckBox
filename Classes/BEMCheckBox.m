@@ -24,6 +24,10 @@
  */
 @property (strong, nonatomic) CAShapeLayer *checkMarkLayer;
 
+/** The layer where the line is drawn when the check box is set to on and intermediate state is ste to on.
+ */
+@property (strong, nonatomic) CAShapeLayer *lineLayer;
+
 /** The BEMAnimationManager object used to generate animations.
  */
 @property (strong, nonatomic) BEMAnimationManager *animationManager;
@@ -52,10 +56,14 @@
 - (void)commonInit {
     // Default values
     _on = NO;
+	_intermediateState = NO;
     _hideBox = NO;
     _onTintColor = [UIColor colorWithRed:0 green:122.0/255.0 blue:255/255 alpha:1];
+	_onTintIntermediateStateColor = [UIColor lightGrayColor];
     _onFillColor = [UIColor clearColor];
+	_onFillIntermediateStateColor = [UIColor lightGrayColor];
     _onCheckColor = [UIColor colorWithRed:0 green:122.0/255.0 blue:255/255 alpha:1];
+	_onLineColor = [UIColor whiteColor];
     _tintColor = [UIColor lightGrayColor];
     _lineWidth = 2.0;
     _animationDuration = 0.5;
@@ -95,6 +103,9 @@
     
     [self.checkMarkLayer removeFromSuperlayer];
     self.checkMarkLayer = nil;
+	
+	[self.lineLayer removeFromSuperlayer];
+	self.lineLayer = nil;
     
     [self setNeedsDisplay];
     [self layoutIfNeeded];
@@ -118,6 +129,26 @@
             [self.checkMarkLayer removeFromSuperlayer];
         }
     }
+}
+
+- (void)setIntermediateState:(BOOL)intermediateState animated:(BOOL)animated {
+	_on = intermediateState;
+	_intermediateState = intermediateState;
+	
+	[self drawEntireCheckBox];
+	
+	if (intermediateState) {
+		if (animated) {
+			[self addOnAnimation];
+		}
+	} else {
+		if (animated) {
+			[self addOffAnimation];
+		} else {
+			[self.onBoxLayer removeFromSuperlayer];
+			[self.lineLayer removeFromSuperlayer];
+		}
+	}
 }
 
 - (void)setOn:(BOOL)on {
@@ -155,9 +186,19 @@
     [self reload];
 }
 
+- (void)setOnTintIntermediateStateColor:(UIColor *)onTintIntermediateStateColor {
+	_onTintIntermediateStateColor = onTintIntermediateStateColor;
+	[self reload];
+}
+
 - (void)setOnFillColor:(UIColor *)onFillColor {
     _onFillColor = onFillColor;
     [self reload];
+}
+
+- (void)setOnFillIntermediateStateColor:(UIColor *)onFillIntermediateStateColor {
+	_onFillIntermediateStateColor = onFillIntermediateStateColor;
+	[self reload];
 }
 
 - (void)setOnCheckColor:(UIColor *)onCheckColor {
@@ -167,7 +208,8 @@
 
 #pragma mark Gesture Recognizer
 - (void)handleTapCheckBox:(UITapGestureRecognizer *)recognizer {
-    [self setOn:!self.on animated:YES];
+	[self setIntermediateState:!self.intermediateState animated:true];
+	//[self setOn:!self.on animated:true];
     if ([self.delegate respondsToSelector:@selector(didTapCheckBox:)]) {
         [self.delegate didTapCheckBox:self];
     }
@@ -212,8 +254,10 @@
             [self drawOnBox];
         }
     }
-    if (self.on) {
-        [self drawCheckMark];
+	if (self.intermediateState) {
+		[self drawLine];
+	} else if (self.on) {
+		[self drawCheckMark];
     }
 }
 
@@ -242,8 +286,15 @@
     self.onBoxLayer.frame = self.bounds;
     self.onBoxLayer.path = [self.pathManager pathForBox].CGPath;
     self.onBoxLayer.lineWidth = self.lineWidth;
-    self.onBoxLayer.fillColor = self.onFillColor.CGColor;
-    self.onBoxLayer.strokeColor = self.onTintColor.CGColor;
+	
+	if (self.intermediateState ) {
+		self.onBoxLayer.fillColor = self.onFillIntermediateStateColor.CGColor;
+		self.onBoxLayer.strokeColor = self.onTintIntermediateStateColor.CGColor;
+	} else {
+		self.onBoxLayer.fillColor = self.onFillColor.CGColor;
+		self.onBoxLayer.strokeColor = self.onTintColor.CGColor;
+	}
+	
     self.onBoxLayer.rasterizationScale = 2.0 * [UIScreen mainScreen].scale;
     self.onBoxLayer.shouldRasterize = YES;
     [self.layer addSublayer:self.onBoxLayer];
@@ -267,6 +318,24 @@
     [self.layer addSublayer:self.checkMarkLayer];
 }
 
+/** Draws the check mark when the checkbox is set to On.
+ */
+- (void)drawLine {
+	[self.lineLayer removeFromSuperlayer];
+	self.lineLayer = [CAShapeLayer layer];
+	self.lineLayer.frame = self.bounds;
+	self.lineLayer.path = [self.pathManager pathForLine].CGPath;
+	self.lineLayer.strokeColor = self.onLineColor.CGColor;
+	self.lineLayer.lineWidth = self.lineWidth;
+	self.lineLayer.fillColor = [UIColor clearColor].CGColor;
+	self.lineLayer.lineCap = kCALineCapRound;
+	self.lineLayer.lineJoin = kCALineJoinRound;
+	
+	self.lineLayer.rasterizationScale = 2.0 * [UIScreen mainScreen].scale;
+	self.lineLayer.shouldRasterize = YES;
+	[self.layer addSublayer:self.lineLayer];
+}
+
 #pragma mark Animations
 - (void)addOnAnimation {
     if (self.animationDuration == 0.0) {
@@ -280,6 +349,7 @@
             [self.onBoxLayer addAnimation:animation forKey:@"strokeEnd"];
             animation.delegate = self;
             [self.checkMarkLayer addAnimation:animation forKey:@"strokeEnd"];
+			[self.lineLayer addAnimation:animation forKey:@"strokeEnd"];
         }
             return;
             
@@ -290,6 +360,7 @@
             
             [self.onBoxLayer addAnimation:wiggle forKey:@"transform"];
             [self.checkMarkLayer addAnimation:opacityAnimation forKey:@"opacity"];
+			[self.lineLayer addAnimation:opacityAnimation forKey:@"opacity"];
         }
             return;
             
@@ -303,6 +374,7 @@
             
             [self.onBoxLayer addAnimation:opacity forKey:@"opacity"];
             [self.checkMarkLayer addAnimation:wiggle forKey:@"transform"];
+			[self.lineLayer addAnimation:wiggle forKey:@"transform"];
         }
             return;
             
@@ -316,6 +388,9 @@
             [self.onBoxLayer addAnimation:opacity forKey:@"opacity"];
             [self.checkMarkLayer addAnimation:morphAnimation forKey:@"path"];
             [self.checkMarkLayer addAnimation:opacity forKey:@"opacity"];
+			
+			[self.lineLayer addAnimation:morphAnimation forKey:@"path"];
+			[self.lineLayer addAnimation:opacity forKey:@"opacity"];
         }
             return;
             
@@ -333,7 +408,8 @@
             checkStrokeAnimation.fillMode = kCAFillModeBackwards;
             checkStrokeAnimation.beginTime = CACurrentMediaTime() + boxStrokeAnimation.duration;
             [self.checkMarkLayer addAnimation:checkStrokeAnimation forKey:@"strokeEnd"];
-            
+			[self.lineLayer addAnimation:checkStrokeAnimation forKey:@"strokeEnd"];
+			
             CABasicAnimation *checkMorphAnimation = [self.animationManager morphAnimationFromPath:[self.pathManager pathForLongCheckMark] toPath:[self.pathManager pathForCheckMark]];
             checkMorphAnimation.duration = checkMorphAnimation.duration / 6;
             checkMorphAnimation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut];
@@ -342,6 +418,7 @@
             checkMorphAnimation.fillMode = kCAFillModeForwards;
             checkMorphAnimation.delegate = self;
             [self.checkMarkLayer addAnimation:checkMorphAnimation forKey:@"path"];
+			[self.lineLayer addAnimation:checkMorphAnimation forKey:@"path"];
         }
             return;
             
@@ -350,6 +427,7 @@
             [self.onBoxLayer addAnimation:animation forKey:@"opacity"];
             animation.delegate = self;
             [self.checkMarkLayer addAnimation:animation forKey:@"opacity"];
+			[self.lineLayer addAnimation:animation forKey:@"opacity"];
         }
             return;
     }
@@ -368,6 +446,7 @@
             [self.onBoxLayer addAnimation:animation forKey:@"strokeEnd"];
             animation.delegate = self;
             [self.checkMarkLayer addAnimation:animation forKey:@"strokeEnd"];
+			[self.lineLayer addAnimation:animation forKey:@"strokeEnd"];
         }
             return;
             
@@ -378,6 +457,7 @@
             
             [self.onBoxLayer addAnimation:wiggle forKey:@"transform"];
             [self.checkMarkLayer addAnimation:[self.animationManager opacityAnimationReverse:YES] forKey:@"opacity"];
+			[self.lineLayer addAnimation:[self.animationManager opacityAnimationReverse:YES] forKey:@"opacity"];
         }
             return;
             
@@ -390,6 +470,7 @@
             
             [self.onBoxLayer addAnimation:opacity forKey:@"opacity"];
             [self.checkMarkLayer addAnimation:wiggle forKey:@"transform"];
+			[self.lineLayer addAnimation:wiggle forKey:@"transform"];
         }
             return;
             
@@ -403,6 +484,9 @@
             [self.onBoxLayer addAnimation:opacity forKey:@"opacity"];
             [self.checkMarkLayer addAnimation:animation forKey:@"path"];
             [self.checkMarkLayer addAnimation:opacity forKey:@"opacity"];
+			
+			[self.lineLayer addAnimation:animation forKey:@"path"];
+			[self.lineLayer addAnimation:opacity forKey:@"opacity"];
         }
             return;
             
@@ -413,13 +497,15 @@
             checkMorphAnimation.delegate = nil;
             checkMorphAnimation.duration = checkMorphAnimation.duration / 6;
             [self.checkMarkLayer addAnimation:checkMorphAnimation forKey:@"path"];
-            
+			[self.lineLayer addAnimation:checkMorphAnimation forKey:@"path"];
+			
             CABasicAnimation *checkStrokeAnimation = [self.animationManager strokeAnimationReverse:YES];
             checkStrokeAnimation.delegate = nil;
             checkStrokeAnimation.beginTime = CACurrentMediaTime() + checkMorphAnimation.duration;
             checkStrokeAnimation.duration = checkStrokeAnimation.duration / 3;
             [self.checkMarkLayer addAnimation:checkStrokeAnimation forKey:@"strokeEnd"];
-            
+			[self.lineLayer addAnimation:checkStrokeAnimation forKey:@"strokeEnd"];
+			
             __weak __typeof__(self) weakSelf = self;
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(CACurrentMediaTime() + checkMorphAnimation.duration + checkStrokeAnimation.duration * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                 weakSelf.checkMarkLayer.lineCap = kCALineCapButt;
@@ -450,8 +536,9 @@
         if (self.on == NO) {
             [self.onBoxLayer removeFromSuperlayer];
             [self.checkMarkLayer removeFromSuperlayer];
+			[self.lineLayer removeFromSuperlayer];
         }
-        
+		
         if ([self.delegate respondsToSelector:@selector(animationDidStopForCheckBox:)]) {
             [self.delegate animationDidStopForCheckBox:self];
         }

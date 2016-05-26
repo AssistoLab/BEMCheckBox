@@ -73,6 +73,11 @@ typedef NS_ENUM(NSInteger, BEMAnimationType) {
  */
 @property (nonatomic) IBInspectable BOOL on;
 
+/** This property allow you to have an intermediate state on the checkBox (you will have a line and not a chekcBox).
+ * Default to NO.
+ */
+@property (nonatomic) IBInspectable BOOL intermediateState;
+
 /** The width of the lines of the check mark and the box. Default to 2.0.
  */
 @property (nonatomic) IBInspectable CGFloat lineWidth;
@@ -89,13 +94,25 @@ typedef NS_ENUM(NSInteger, BEMAnimationType) {
  */
 @property (strong, nonatomic) IBInspectable UIColor *onTintColor;
 
+/** The color of the line around the box when it is on the intermediate state.
+ */
+@property (strong, nonatomic) IBInspectable UIColor *onTintIntermediateStateColor;
+
 /** The color of the inside of the box when it is On.
  */
 @property (strong, nonatomic) IBInspectable UIColor *onFillColor;
 
+/** The color of the inside of the box when it is in the intermediate state.
+ */
+@property (strong, nonatomic) IBInspectable UIColor *onFillIntermediateStateColor;
+
 /** The color of the check mark when it is On.
  */
 @property (strong, nonatomic) IBInspectable UIColor *onCheckColor;
+
+/** The color of the check mark when it is the intermediate state.
+ */
+@property (strong, nonatomic) IBInspectable UIColor *onLineColor;
 
 /** The color of the box when the checkbox is Off.
  */
@@ -125,6 +142,10 @@ typedef NS_ENUM(NSInteger, BEMAnimationType) {
 /** Set the state of the check box to On or Off, optionally animating the transition.
  */
 - (void)setOn:(BOOL)on animated:(BOOL)animated;
+
+/** Set the intermediate state of the check box.
+ */
+- (void)setIntermediateState:(BOOL)intermediateState animated:(BOOL)animated;
 
 /** Forces a redraw of the entire check box.
  * The current value of On is kept.

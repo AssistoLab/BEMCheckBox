@@ -77,4 +77,11 @@
     return flatCheckMarkPath;
 }
 
+- (UIBezierPath *)pathForLine {
+	UIBezierPath * linePath = [UIBezierPath bezierPath];
+	[linePath moveToPoint:CGPointMake((self.size * 20.0)/100.0, self.size/2.0)];
+	[linePath addLineToPoint:CGPointMake((self.size * 80.0)/100, self.size/2.0)];
+	return linePath;
+}
+
 @end
