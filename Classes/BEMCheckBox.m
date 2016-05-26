@@ -217,8 +217,7 @@
 
 #pragma mark Gesture Recognizer
 - (void)handleTapCheckBox:(UITapGestureRecognizer *)recognizer {
-	[self setIntermediateState:!self.intermediateState animated:true];
-	//[self setOn:!self.on animated:true];
+	[self setOn:!self.on animated:true];
     if ([self.delegate respondsToSelector:@selector(didTapCheckBox:)]) {
         [self.delegate didTapCheckBox:self];
     }
