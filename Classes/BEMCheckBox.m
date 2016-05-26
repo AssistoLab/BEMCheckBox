@@ -151,6 +151,10 @@
 	}
 }
 
+- (void)setIntermediateState:(BOOL)intermediateState {
+	[self setIntermediateState:intermediateState animated:NO];
+}
+
 - (void)setOn:(BOOL)on {
     [self setOn:on animated:NO];
 }
@@ -204,6 +208,11 @@
 - (void)setOnCheckColor:(UIColor *)onCheckColor {
     _onCheckColor = onCheckColor;
     [self reload];
+}
+
+- (void)setOnLineColor:(UIColor *)onLineColor {
+	_onLineColor = onLineColor;
+	[self reload];
 }
 
 #pragma mark Gesture Recognizer
